@@ -1,0 +1,63 @@
+- name: "install :: updates package lists"
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    force_apt_get: true
+
+- name: "install :: upgrades package lists"
+  become: true
+  ansible.builtin.apt:
+    upgrade: full
+    force_apt_get: true
+
+
+ # GPG Keys and repos
+
+- name: Download Kubernetes APT key
+  become: true
+  ansible.builtin.get_url:
+    url: https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key
+    dest: /opt/kubernetes-release.key
+    force: no
+
+- name: Check if k8s file exists
+  become: true
+  stat:
+    path: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+  register: k8s_key_present
+
+- name: Dearmor Kubernetes APT key
+  become: true
+  when: not k8s_key_present.stat.exists
+  ansible.builtin.command:
+   cmd: "gpg -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg --dearmor /opt/kubernetes-release.key"
+
+
+- name: Add Kubernetes apt repository
+  become: true
+  apt_repository:
+    repo: deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /
+    state: present
+    filename: kubernetes
+
+# END GPG Keys and repos
+
+- name: "install :: updates package lists"
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    force_apt_get: true
+
+
+- name: Install kubelet, kubeadm, and kubectl
+  become: true
+  apt:
+    name:
+      - kubelet={{ kubernetes_version }}
+      - kubeadm={{ kubernetes_version }}
+      - kubectl={{ kubernetes_version }}
+    state: present
+    update_cache: yes
+    allow_downgrade: yes # Important for pinning the version
+
+

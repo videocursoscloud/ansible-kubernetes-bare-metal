@@ -1,0 +1,44 @@
+# GPG Keys and repos
+
+- name: Download docker APT key
+  become: true
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /opt/docker-release.key
+    force: no
+
+- name: Check if docker file exists
+  become: true
+  stat:
+    path: "/etc/apt/keyrings/docker-apt-keyring.gpg"
+  register: docker_key_present
+
+- name: Dearmor docker APT key
+  become: true
+  when: not docker_key_present.stat.exists
+  ansible.builtin.command:
+   cmd: "gpg -o /etc/apt/keyrings/docker-apt-keyring.gpg --dearmor /opt/docker-release.key"
+
+- name: Add docker apt repository
+  become: true
+  apt_repository:
+    repo: deb [trusted=yes arch=amd64 signed-by=/etc/apt/keyrings/docker-apt-keyring.gpg] https://download.docker.com/linux/ubuntu jammy stable
+    state: present
+    filename: docker
+
+# END GPG Keys and repos
+
+- name: "install :: updates package lists"
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    force_apt_get: true
+
+
+- name: Install containerd
+  become: true
+  apt:
+        name: containerd.io={{ containerd_version }}
+        state: present
+        update_cache: yes
+        allow_downgrade: yes

@@ -1,0 +1,27 @@
+#- name: "config :: TCP port 6443 on master is reachable from worker"
+#  become: true
+#  ansible.builtin.wait_for: "host={{ hostvars[groups['masters'][0]].ansible_host }} port=6443 timeout=1"
+
+- name: Check if the file exists
+  become: true
+  ansible.builtin.stat:
+    path: /kubernetes_node_joined
+  register: file_check
+
+- name: "config :: joins the workers to the cluster"
+  become: true
+  ansible.builtin.shell: "{{ hostvars[groups['masters'][0]].join_command }}"
+#  ansible.builtin.command: your_command_here # Replace with your actual command
+  when: not file_check.stat.exists
+
+- name: Create the file if it doesn't exist
+  become: true
+  ansible.builtin.file:
+    path: /kubernetes_node_joined
+    state: touch                 # 'touch' creates an empty file if it doesn't exist
+    mode: '0644'                 # Set appropriate permissions
+    owner: root                  # Set appropriate owner
+    group: root                  # Set appropriate group
+  when: not file_check.stat.exists
+
+
