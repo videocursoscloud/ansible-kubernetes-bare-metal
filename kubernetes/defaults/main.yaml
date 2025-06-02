@@ -1,17 +1,8 @@
-control_plane_endpoint: "10.0.55.131"
-nfs_export_paths:
-  - /data/kubernetes-volumes/data/
-  - /data/kubernetes-volumes/minio
-  - /data/kubernetes-volumes/whatever
-
 kubernetes:
   config: "/home/{{ ansible_user }}/.kube"
   CIDR: "10.244.0.0/16"
 
-kubernetes_control_plane_endpoint: "10.0.55.131"
 
 calico:
   version: "v3.26.4"
 
-nfs:
-  whitelist_ips: 10.0.55.0/24
