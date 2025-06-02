@@ -5,19 +5,18 @@
 - name: Check if the file exists
   become: true
   ansible.builtin.stat:
-    path: /kubernetes_node_joined
+    path: /etc/.k8s_node_joined_to_cluster
   register: file_check
 
 - name: "config :: joins the workers to the cluster"
   become: true
   ansible.builtin.shell: "{{ hostvars[groups['masters'][0]].join_command }}"
-#  ansible.builtin.command: your_command_here # Replace with your actual command
   when: not file_check.stat.exists
 
 - name: Create the file if it doesn't exist
   become: true
   ansible.builtin.file:
-    path: /kubernetes_node_joined
+    path: /etc/.k8s_node_joined_to_cluster
     state: touch                 # 'touch' creates an empty file if it doesn't exist
     mode: '0644'                 # Set appropriate permissions
     owner: root                  # Set appropriate owner
