@@ -16,8 +16,6 @@
   ansible.builtin.shell: |
     kubeadm init --pod-network-cidr={{ kubernetes.CIDR }} \
       --apiserver-advertise-address {{ ansible_default_ipv4.address }} 
-
-#--control-plane-endpoint {{ control_plane_endpoint }}
   register: init_result
   when:
     - not kube_admin_conf_check.stat.exists
